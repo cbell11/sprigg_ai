@@ -5,8 +5,27 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { db } from '@/lib/supabase'
 
+interface ParsedContent {
+  title: string
+  description: string
+  contactInfo: string
+  bookingInfo: string
+  mainContent: string
+  url: string
+  crawledAt: string
+}
+
+interface CrawledData {
+  id: string
+  user_id: string
+  website_url: string
+  page_content: string
+  created_at: string
+  parsedContent?: ParsedContent
+}
+
 export default function Dashboard() {
-  const [crawledData, setCrawledData] = useState<any[]>([])
+  const [crawledData, setCrawledData] = useState<CrawledData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
@@ -26,7 +45,13 @@ export default function Dashboard() {
           throw error
         }
 
-        setCrawledData(data || [])
+        // Parse the JSON content for each crawled website
+        const parsedData = (data || []).map(item => ({
+          ...item,
+          parsedContent: JSON.parse(item.page_content)
+        }))
+
+        setCrawledData(parsedData)
       } catch (error) {
         console.error('Error fetching crawled data:', error)
       } finally {
@@ -65,14 +90,45 @@ export default function Dashboard() {
             {crawledData.map((item) => (
               <div key={item.id} className="bg-white rounded-lg p-6 shadow-sm">
                 <h2 className="text-lg font-semibold text-violet-900 mb-2">
-                  {item.website_url}
+                  {item.parsedContent?.title || item.website_url}
                 </h2>
                 <p className="text-violet-700 text-sm mb-4">
                   Crawled on: {new Date(item.created_at).toLocaleDateString()}
                 </p>
-                <div className="text-sm text-violet-600">
-                  {item.page_content.substring(0, 150)}...
-                </div>
+                
+                {item.parsedContent && (
+                  <div className="space-y-4">
+                    {item.parsedContent.description && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-violet-800 mb-1">Description</h3>
+                        <p className="text-sm text-violet-600">{item.parsedContent.description}</p>
+                      </div>
+                    )}
+                    
+                    {item.parsedContent.contactInfo && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-violet-800 mb-1">Contact Info</h3>
+                        <p className="text-sm text-violet-600">{item.parsedContent.contactInfo}</p>
+                      </div>
+                    )}
+                    
+                    {item.parsedContent.bookingInfo && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-violet-800 mb-1">Booking Info</h3>
+                        <p className="text-sm text-violet-600">{item.parsedContent.bookingInfo}</p>
+                      </div>
+                    )}
+                    
+                    {item.parsedContent.mainContent && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-violet-800 mb-1">Main Content</h3>
+                        <p className="text-sm text-violet-600 line-clamp-3">
+                          {item.parsedContent.mainContent}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
