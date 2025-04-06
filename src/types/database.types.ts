@@ -14,47 +14,50 @@ export interface Database {
           id: string
           user_id: string
           website_url: string
-          page_content: string
+          page_content: Json
+          status: string
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
           website_url: string
-          page_content: string
+          page_content: Json
+          status?: string
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
           website_url?: string
-          page_content?: string
+          page_content?: Json
+          status?: string
           created_at?: string
+          updated_at?: string
         }
       }
       chat_logs: {
         Row: {
           id: string
           user_id: string
-          chat_session_id: string
-          user_message: string
-          bot_response: string
+          message: string
+          response: string
           created_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          chat_session_id: string
-          user_message: string
-          bot_response: string
+          message: string
+          response: string
           created_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          chat_session_id?: string
-          user_message?: string
-          bot_response?: string
+          message?: string
+          response?: string
           created_at?: string
         }
       }
@@ -62,37 +65,37 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          status: 'active' | 'inactive' | 'cancelled'
-          plan: 'free' | 'pro' | 'enterprise'
+          plan: string
+          status: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          status?: 'active' | 'inactive' | 'cancelled'
-          plan?: 'free' | 'pro' | 'enterprise'
+          plan: string
+          status?: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          status?: 'active' | 'inactive' | 'cancelled'
-          plan?: 'free' | 'pro' | 'enterprise'
+          plan?: string
+          status?: string
           created_at?: string
           updated_at?: string
         }
       }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-  }
-}
+      chatbot_customization: {
+        Row: {
+          id: string
+          primary_color: string
+          secondary_color: string
+          logo: string
+          name: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?

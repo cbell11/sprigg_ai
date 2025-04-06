@@ -9,15 +9,17 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 // Helper functions for common database operations
 export const db = {
   // Crawled Data operations
-  async saveCrawledData(userId: string, websiteUrl: string, pageContent: string) {
+  async saveCrawledData(userId: string, url: string, content: string) {
     return await supabase
       .from('crawled_data')
       .insert({
         user_id: userId,
-        website_url: websiteUrl,
-        page_content: pageContent,
+        website_url: url,
+        page_content: content,
+        status: 'completed'
       })
       .select()
+      .single()
   },
 
   async getCrawledData(userId: string) {
@@ -29,30 +31,24 @@ export const db = {
   },
 
   // Chat Logs operations
-  async saveChatLog(
-    userId: string,
-    chatSessionId: string,
-    userMessage: string,
-    botResponse: string
-  ) {
+  async saveChatLog(userId: string, message: string, response: string) {
     return await supabase
       .from('chat_logs')
       .insert({
         user_id: userId,
-        chat_session_id: chatSessionId,
-        user_message: userMessage,
-        bot_response: botResponse,
+        message,
+        response
       })
       .select()
+      .single()
   },
 
-  async getChatLogs(userId: string, chatSessionId: string) {
+  async getChatLogs(userId: string) {
     return await supabase
       .from('chat_logs')
       .select('*')
       .eq('user_id', userId)
-      .eq('chat_session_id', chatSessionId)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
   },
 
   // Subscription operations
@@ -64,19 +60,26 @@ export const db = {
       .single()
   },
 
-  async updateSubscription(
-    userId: string,
-    status: 'active' | 'inactive' | 'cancelled',
-    plan: 'free' | 'pro' | 'enterprise'
-  ) {
+  async updateSubscription(userId: string, plan: string) {
     return await supabase
       .from('subscriptions')
       .upsert({
         user_id: userId,
-        status,
         plan,
-        updated_at: new Date().toISOString(),
+        status: 'active'
       })
       .select()
+      .single()
   },
-}
+
+  // Chatbot customization methods
+  async getChatbotCustomization() {
+    return await supabase
+      .from('chatbot_customization')
+      .select('*')
+      .single()
+  },
+
+  async updateChatbotCustomization(customization: {
+    primary_color: string
+    sec
