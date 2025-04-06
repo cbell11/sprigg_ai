@@ -12,9 +12,22 @@ interface CrawlResult {
   mainContent: string
 }
 
+function formatUrl(url: string): string {
+  // Remove any whitespace
+  url = url.trim()
+  
+  // Add https:// if no protocol is specified
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url
+  }
+  
+  return url
+}
+
 async function crawlWebsite(url: string): Promise<CrawlResult> {
   try {
-    const response = await fetch(url)
+    const formattedUrl = formatUrl(url)
+    const response = await fetch(formattedUrl)
     const html = await response.text()
     const $ = cheerio.load(html)
 
@@ -58,16 +71,6 @@ async function crawlWebsite(url: string): Promise<CrawlResult> {
 
 export async function POST(request: Request) {
   try {
-    // Get the authenticated user
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     // Get the URL from the request body
     const { url } = await request.json()
 
@@ -80,7 +83,8 @@ export async function POST(request: Request) {
 
     // Validate URL format
     try {
-      new URL(url)
+      const formattedUrl = formatUrl(url)
+      new URL(formattedUrl)
     } catch {
       return NextResponse.json(
         { error: 'Invalid URL format' },
@@ -102,9 +106,9 @@ export async function POST(request: Request) {
       crawledAt: new Date().toISOString(),
     })
 
-    // Save to database
+    // Save to database with a temporary user ID
     const { data, error } = await db.saveCrawledData(
-      session.user.id,
+      'anonymous',
       url,
       formattedContent
     )
